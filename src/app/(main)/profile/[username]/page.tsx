@@ -5,8 +5,10 @@ import { Footer } from "@/components/layout/footer";
 import { Header, MobileNav } from "@/components/layout/nav";
 import { Avatar } from "@/components/ui/avatar";
 import { PostCard } from "@/components/feed/post-card";
+import Link from "next/link";
 import { USER_ROLE_LABELS } from "@/lib/constants";
 import type { PostWithAuthor, Profile } from "@/lib/types";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +76,14 @@ export default async function ProfilePage({
               <PostCard key={post.id} post={post} />
             ))
           ) : (
-            <p className="text-sm text-muted">No posts yet.</p>
+            <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center">
+              <p className="text-sm text-muted">No posts yet.</p>
+              {user?.id === typedProfile.id && (
+                <Link href="/create" className="mt-4 inline-block">
+                  <Button size="sm">Share your first post</Button>
+                </Link>
+              )}
+            </div>
           )}
         </section>
       </main>

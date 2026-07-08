@@ -30,7 +30,7 @@ export function CreatePostForm() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return [];
+    if (!user) throw new Error("You must be signed in to upload images.");
 
     const urls: string[] = [];
     for (const file of Array.from(files).slice(0, 4)) {
@@ -39,7 +39,9 @@ export function CreatePostForm() {
       const { error: uploadError } = await supabase.storage
         .from("post-images")
         .upload(path, file, { upsert: false });
-      if (uploadError) continue;
+      if (uploadError) {
+        throw new Error(uploadError.message || "Image upload failed.");
+      }
       const {
         data: { publicUrl },
       } = supabase.storage.from("post-images").getPublicUrl(path);
@@ -51,20 +53,24 @@ export function CreatePostForm() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     startTransition(async () => {
-      const imageUrls = await uploadImages(imageFiles);
-      const formData = new FormData();
-      formData.set("post_type", postType);
-      formData.set("body", body);
-      if (trackUrl.trim()) formData.set("track_url", trackUrl.trim());
-      imageUrls.forEach((url) => formData.append("image_urls", url));
+      try {
+        const imageUrls = await uploadImages(imageFiles);
+        const formData = new FormData();
+        formData.set("post_type", postType);
+        formData.set("body", body);
+        if (trackUrl.trim()) formData.set("track_url", trackUrl.trim());
+        imageUrls.forEach((url) => formData.append("image_urls", url));
 
-      const result = await createPost(formData);
-      if (result.error) {
-        setError(result.error);
-        return;
+        const result = await createPost(formData);
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
+        router.push(result.postId ? `/post/${result.postId}` : "/feed");
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
       }
-      router.push(result.postId ? `/post/${result.postId}` : "/feed");
-      router.refresh();
     });
   }
 

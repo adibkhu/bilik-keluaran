@@ -115,7 +115,9 @@ export default async function PostPage({
           )}
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
-            <ReportButton targetType="post" targetId={typedPost.id} />
+            {user && (
+              <ReportButton targetType="post" targetId={typedPost.id} />
+            )}
             {user?.is_admin && (
               <AdminContentActions postId={typedPost.id} />
             )}
@@ -124,7 +126,12 @@ export default async function PostPage({
 
         <section className="mt-8 space-y-6">
           <h2 className="text-lg font-semibold">Comments</h2>
-          <CommentList comments={(comments as CommentWithAuthor[]) ?? []} />
+          <CommentList
+            comments={(comments as CommentWithAuthor[]) ?? []}
+            isAuthenticated={!!user}
+            isAdmin={user?.is_admin}
+            postId={id}
+          />
           {user ? (
             <CommentForm postId={id} />
           ) : (

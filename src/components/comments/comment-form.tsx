@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createComment } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 export function CommentForm({ postId }: { postId: string }) {
+  const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -22,6 +24,7 @@ export function CommentForm({ postId }: { postId: string }) {
       }
       setBody("");
       setError(null);
+      router.refresh();
     });
   }
 

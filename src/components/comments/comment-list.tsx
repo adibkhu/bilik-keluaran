@@ -3,9 +3,20 @@ import { formatDistanceToNow } from "date-fns";
 import { Avatar } from "@/components/ui/avatar";
 import { MentionText } from "@/components/mentions/mention-text";
 import { ReportButton } from "@/components/moderation/report-button";
+import { AdminContentActions } from "@/components/admin/admin-panels";
 import type { CommentWithAuthor } from "@/lib/types";
 
-export function CommentList({ comments }: { comments: CommentWithAuthor[] }) {
+export function CommentList({
+  comments,
+  isAuthenticated,
+  isAdmin,
+  postId,
+}: {
+  comments: CommentWithAuthor[];
+  isAuthenticated: boolean;
+  isAdmin?: boolean;
+  postId: string;
+}) {
   if (comments.length === 0) {
     return (
       <p className="text-sm text-muted">
@@ -48,7 +59,14 @@ export function CommentList({ comments }: { comments: CommentWithAuthor[] }) {
             <p className="mt-1 text-sm leading-relaxed">
               <MentionText text={comment.body} />
             </p>
-            <ReportButton targetType="comment" targetId={comment.id} />
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {isAuthenticated && (
+                <ReportButton targetType="comment" targetId={comment.id} />
+              )}
+              {isAdmin && (
+                <AdminContentActions postId={postId} commentId={comment.id} />
+              )}
+            </div>
           </div>
         </article>
       ))}

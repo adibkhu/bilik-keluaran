@@ -16,17 +16,22 @@ export function FeedList({
         <h2 className="text-lg font-semibold text-foreground">The feed is quiet</h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted">
           Be the first to share a release, start a discussion, or shout out an artist
-          from the Malaysian scene.
+          from the Malaysian scene. Music only — see our guidelines for what belongs here.
         </p>
-        {isAuthenticated ? (
-          <Link href="/create" className="mt-6 inline-block">
-            <Button>Create the first post</Button>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          {isAuthenticated ? (
+            <Link href="/create">
+              <Button>Create the first post</Button>
+            </Link>
+          ) : (
+            <Link href="/signup">
+              <Button>Join the community</Button>
+            </Link>
+          )}
+          <Link href="/guidelines">
+            <Button variant="secondary">Community guidelines</Button>
           </Link>
-        ) : (
-          <Link href="/signup" className="mt-6 inline-block">
-            <Button>Join the community</Button>
-          </Link>
-        )}
+        </div>
       </div>
     );
   }

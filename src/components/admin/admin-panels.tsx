@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTransition } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -37,6 +38,13 @@ export function AdminReportQueue({
     <div className="space-y-4">
       {reports.map((report) => {
         const reporter = profiles[report.reporter_id];
+        const targetHref =
+          report.target_type === "post"
+            ? `/post/${report.target_id}`
+            : report.target_type === "comment"
+              ? `/admin?highlight=${report.target_id}`
+              : `/admin/users`;
+
         return (
           <div
             key={report.id}
@@ -57,7 +65,33 @@ export function AdminReportQueue({
               Reported by {reporter?.display_name ?? "Unknown"} (@
               {reporter?.username ?? "unknown"})
             </p>
+            <p className="mt-1 font-mono text-xs text-muted">
+              ID: {report.target_id}
+            </p>
+            {report.target_type === "post" && (
+              <Link
+                href={targetHref}
+                className="mt-2 inline-block text-sm text-accent hover:underline"
+              >
+                Open reported post →
+              </Link>
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
+              {report.target_type === "post" && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      await adminDeletePost(report.target_id);
+                      await adminUpdateReportStatus(report.id, "actioned");
+                    })
+                  }
+                >
+                  Delete post
+                </Button>
+              )}
               <Button
                 size="sm"
                 disabled={pending}
@@ -92,13 +126,14 @@ export function AdminContentActions({
 
   return (
     <div className="flex gap-2">
-      {postId && (
+      {postId && !commentId && (
         <Button
           size="sm"
           variant="danger"
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
+              if (!window.confirm("Delete this post?")) return;
               await adminDeletePost(postId);
             })
           }
@@ -113,6 +148,7 @@ export function AdminContentActions({
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
+              if (!window.confirm("Delete this comment?")) return;
               await adminDeleteComment(commentId, postId);
             })
           }

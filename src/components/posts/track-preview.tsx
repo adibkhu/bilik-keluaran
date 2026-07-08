@@ -10,6 +10,43 @@ type TrackPreviewProps = {
   metadata: TrackMetadata | null;
 };
 
+function platformEmbedSrc(url: string, metadata: TrackMetadata): string | null {
+  if (metadata.platform === "apple_music" && metadata.embed_url?.includes("embed.music.apple.com")) {
+    return metadata.embed_url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+
+    if (host.includes("spotify.com")) {
+      // /track/ID → /embed/track/ID
+      const path = parsed.pathname.replace(/^\/(intl-[^/]+\/)?/, "/");
+      return `https://open.spotify.com/embed${path}`;
+    }
+
+    if (host.includes("youtu.be") || host.includes("youtube.com")) {
+      let videoId = "";
+      if (host.includes("youtu.be")) {
+        videoId = parsed.pathname.slice(1);
+      } else {
+        videoId = parsed.searchParams.get("v") ?? "";
+      }
+      if (!videoId) return null;
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    if (host.includes("soundcloud.com") && metadata.html) {
+      const match = metadata.html.match(/src=["']([^"']+)["']/i);
+      return match?.[1] ?? null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export function TrackPreview({ url, metadata }: TrackPreviewProps) {
   if (!metadata) {
     return (
@@ -27,6 +64,14 @@ export function TrackPreview({ url, metadata }: TrackPreviewProps) {
     );
   }
 
+  const embedSrc = platformEmbedSrc(url, metadata);
+  const iframeHeight =
+    metadata.platform === "youtube"
+      ? "200"
+      : metadata.platform === "apple_music"
+        ? "175"
+        : "152";
+
   return (
     <Card className="overflow-hidden p-0">
       <div className="flex gap-3 p-3">
@@ -37,6 +82,7 @@ export function TrackPreview({ url, metadata }: TrackPreviewProps) {
             width={80}
             height={80}
             className="h-20 w-20 shrink-0 rounded-lg object-cover"
+            unoptimized
           />
         ) : (
           <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-surface-hover">
@@ -65,11 +111,17 @@ export function TrackPreview({ url, metadata }: TrackPreviewProps) {
           </div>
         </div>
       </div>
-      {metadata.html && (
-        <div
-          className="border-t border-border [&_iframe]:h-20 [&_iframe]:w-full"
-          dangerouslySetInnerHTML={{ __html: metadata.html }}
-        />
+      {embedSrc && (
+        <div className="border-t border-border">
+          <iframe
+            title={metadata.title}
+            src={embedSrc}
+            className="w-full"
+            height={iframeHeight}
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+          />
+        </div>
       )}
     </Card>
   );

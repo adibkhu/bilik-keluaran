@@ -24,6 +24,7 @@ export function SignupForm({
   const [role, setRole] = useState<UserRole>("fan");
   const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function handleSubmit(event: React.FormEvent) {
@@ -65,7 +66,7 @@ export function SignupForm({
         return;
       }
 
-      const { error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -79,6 +80,14 @@ export function SignupForm({
 
       if (authError) {
         setError(authError.message);
+        return;
+      }
+
+      if (!data.session) {
+        setError(null);
+        setMessage(
+          "Account created. Check your email to confirm, then sign in.",
+        );
         return;
       }
 
@@ -169,7 +178,8 @@ export function SignupForm({
         />
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}
-      <Button type="submit" className="w-full" disabled={pending || betaClosed}>
+      {message && <p className="text-sm text-emerald-400">{message}</p>}
+      <Button type="submit" className="w-full" disabled={pending || betaClosed || !!message}>
         {pending ? "Creating account..." : "Create account"}
       </Button>
       <p className="text-center text-sm text-muted">

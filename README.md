@@ -59,6 +59,26 @@ Open [http://localhost:3000](http://localhost:3000).
 update public.profiles set is_admin = true where username = 'your_username';
 ```
 
+### 6. Seed demo content (optional)
+
+```bash
+npm run seed
+```
+
+Creates three demo accounts and sample posts if the feed is empty:
+
+| Email | Password | Username |
+|-------|----------|----------|
+| `amei@seed.bilik.local` | `SeedDemo123!` | `amei_beats` |
+| `rizal@seed.bilik.local` | `SeedDemo123!` | `rizal_jb` |
+| `fanboy@seed.bilik.local` | `SeedDemo123!` | `penang_fan` |
+
+### 7. Existing project hotfixes
+
+If you already ran an older `schema.sql`, also run:
+
+- `supabase/fix-admin-self-promote.sql` (blocks users from setting `is_admin` on themselves)
+
 ## Deploy to Vercel
 
 1. Push the repo to GitHub.
@@ -107,7 +127,7 @@ supabase/
 
 - Set `BETA_INVITE_CODE` to require an invite code on signup.
 - Set `BETA_CLOSED=true` to block all new signups.
-- Seed the feed by creating a few posts from admin accounts.
+- Run `npm run seed` for starter community posts.
 
 ## License
 

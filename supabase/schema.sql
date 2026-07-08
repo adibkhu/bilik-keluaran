@@ -183,7 +183,12 @@ create policy "Users can insert own profile"
 
 create policy "Users can update own profile"
   on public.profiles for update
-  using (auth.uid() = id and public.is_user_active(auth.uid()));
+  using (auth.uid() = id and public.is_user_active(auth.uid()))
+  with check (
+    auth.uid() = id
+    and public.is_user_active(auth.uid())
+    and is_admin = (select p.is_admin from public.profiles p where p.id = auth.uid())
+  );
 
 -- Posts
 create policy "Posts are viewable by everyone"
